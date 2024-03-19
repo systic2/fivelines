@@ -14,10 +14,39 @@ enum Tile {
   KEY2, LOCK2
 }
 
-enum Input {
+enum RawInput {
   UP, DOWN, LEFT, RIGHT
 }
-
+interface Input {
+  isRight(): boolean;
+  isLeft(): boolean;
+  isUp(): boolean;
+  isDown(): boolean;
+}
+class Right implements Input {
+  isRight(): boolean { return true; }
+  isLeft(): boolean { return false; }
+  isUp(): boolean { return false; }
+  isDown(): boolean { return false; }
+}
+class Left implements Input {
+  isRight(): boolean { return false; }
+  isLeft(): boolean { return true; }
+  isUp(): boolean { return false; }
+  isDown(): boolean { return false; }
+}
+class Up implements Input {
+  isRight(): boolean { return false; }
+  isLeft(): boolean { return false; }
+  isUp(): boolean { return true; }
+  isDown(): boolean { return false; }
+}
+class Down implements Input {
+  isRight(): boolean { return false; }
+  isLeft(): boolean { return false; }
+  isUp(): boolean { return false; }
+  isDown(): boolean { return true; }
+}
 let playerx = 1;
 let playery = 1;
 let map: Tile[][] = [
@@ -81,21 +110,39 @@ function moveVertical(dy: number) {
 }
 
 function update() {
+  handleInputs();
+  updateMap();
+}
+
+function handleInputs() {
   while (inputs.length > 0) {
     let current = inputs.pop();
-    if (current === Input.LEFT)
-      moveHorizontal(-1);
-    else if (current === Input.RIGHT)
-      moveHorizontal(1);
-    else if (current === Input.UP)
-      moveVertical(-1);
-    else if (current === Input.DOWN)
-      moveVertical(1);
+    handleInput(current);
+    
   }
+}
 
+function handleInput(input: Input) {
+  if (input.isLeft())
+      moveHorizontal(-1);
+  else if (input.isRight())
+    moveHorizontal(1);
+  else if (input.isUp())
+    moveVertical(-1);
+  else if (input.isDown())
+    moveVertical(1);
+}
+
+function updateMap() {
   for (let y = map.length - 1; y >= 0; y--) {
     for (let x = 0; x < map[y].length; x++) {
-      if ((map[y][x] === Tile.STONE || map[y][x] === Tile.FALLING_STONE)
+      updateTile(x, y);
+    }
+  }
+}
+
+function updateTile(x: number, y: number) {
+  if ((map[y][x] === Tile.STONE || map[y][x] === Tile.FALLING_STONE)
         && map[y + 1][x] === Tile.AIR) {
         map[y + 1][x] = Tile.FALLING_STONE;
         map[y][x] = Tile.AIR;
@@ -108,8 +155,6 @@ function update() {
       } else if (map[y][x] === Tile.FALLING_BOX) {
         map[y][x] = Tile.BOX;
       }
-    }
-  }
 }
 
 function createGraphics() {
@@ -172,9 +217,9 @@ const UP_KEY = "ArrowUp";
 const RIGHT_KEY = "ArrowRight";
 const DOWN_KEY = "ArrowDown";
 window.addEventListener("keydown", e => {
-  if (e.key === LEFT_KEY || e.key === "a") inputs.push(Input.LEFT);
-  else if (e.key === UP_KEY || e.key === "w") inputs.push(Input.UP);
-  else if (e.key === RIGHT_KEY || e.key === "d") inputs.push(Input.RIGHT);
-  else if (e.key === DOWN_KEY || e.key === "s") inputs.push(Input.DOWN);
+  if (e.key === LEFT_KEY || e.key === "a") inputs.push(new Left());
+  else if (e.key === UP_KEY || e.key === "w") inputs.push(new Up());
+  else if (e.key === RIGHT_KEY || e.key === "d") inputs.push(new Right());
+  else if (e.key === DOWN_KEY || e.key === "s") inputs.push(new Down());
 });
 
