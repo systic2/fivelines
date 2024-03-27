@@ -16,10 +16,6 @@ enum RawTile {
   KEY2,
   LOCK2,
 }
-enum RawFallingState {
-  RESTING,
-  FALLING, 
-}
 interface FallingState {
   isFalling(): boolean;
   moveHorizontal(tile: Tile, dx: number): void;
@@ -339,15 +335,15 @@ function updateMap() {
 
 function updateTile(x: number, y: number) {
   if (map[y][x].isStony() && map[y + 1][x].isAir()) {
-    map[y + 1][x] = new Stone(new Resting());
+    map[y + 1][x] = new Stone(new Falling());
     map[y][x] = new Air();
   } else if (map[y][x].isBoxy() && map[y + 1][x].isAir()) {
-    map[y + 1][x] = new Box(new Resting());
+    map[y + 1][x] = new Box(new Falling());
     map[y][x] = new Air();
   } else if (map[y][x].isFallingStone()) {
-    map[y][x] = new Stone(new Falling());
+    map[y][x] = new Stone(new Resting());
   } else if (map[y][x].isFallingBox()) {
-    map[y][x] = new Box(new Falling());
+    map[y][x] = new Box(new Resting());
   }
 }
 
