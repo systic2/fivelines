@@ -166,67 +166,62 @@ class Box implements Tile {
     this.fallStrategy.update(this, x, y);
   }
 }
-class Key1 implements Tile {
-  isAir(): boolean { return false; }
-  isLock1(): boolean { return false; }
-  isLock2(): boolean { return false; }
-  draw(g: CanvasRenderingContext2D, x: number, y: number) {
-    g.fillStyle = "#ffcc00";
-    g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-  }
-  moveHorizontal(dx: number) {
-    remove(new RemoveLock1());
-    moveToTile(playerx + dx, playery);
-  }
-  moveVertical(dy: number) {
-    remove(new RemoveLock1());
-    moveToTile(playerx, playery + dy);
-  }
-  update(x: number, y: number) { }
-}
-class Lock1 implements Tile {
-  isAir(): boolean { return false; }
-  isLock1(): boolean { return true; }
-  isLock2(): boolean { return false; }
-  draw(g: CanvasRenderingContext2D, x: number, y: number) {
-    g.fillStyle = "#ffcc00";
-    g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-  }
-  moveHorizontal(dx: number) { }
-  moveVertical(dy: number) { }
-  update(x: number, y: number) { }
-}
-class Key2 implements Tile {
-  isAir(): boolean { return false; }
-  isLock1(): boolean { return false; }
-  isLock2(): boolean { return false; }
-  draw(g: CanvasRenderingContext2D, x: number, y: number) {
-    g.fillStyle = "#00ccff";
-    g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-  }
-  moveHorizontal(dx: number) {
-    remove(new RemoveLock2());
-    moveToTile(playerx + dx, playery);
-  }
-  moveVertical(dy: number) {
-    remove(new RemoveLock2());
-    moveToTile(playerx, playery + dy);
-  }
-  update(x: number, y: number) { }
-}
-class Lock2 implements Tile {
-  isAir(): boolean { return false; }
-  isLock1(): boolean { return false; }
-  isLock2(): boolean { return true; }
-  draw(g: CanvasRenderingContext2D, x: number, y: number) {
-    g.fillStyle = "#00ccff";
-    g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-  }
-  moveHorizontal(dx: number) { }
-  moveVertical(dy: number) { }
-  update(x: number, y: number) { }
-}
+class Keyer implements Tile {
+  constructor(
+    private keyConf: KeyConfiguration
+  ) {
 
+  }
+  isAir(): boolean { return false; }
+  isLock1(): boolean { return false; }
+  isLock2(): boolean { return false; }
+  draw(g: CanvasRenderingContext2D, x: number, y: number) {
+    g.fillStyle = this.keyConf.getColor();
+    g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  }
+  moveHorizontal(dx: number) {
+    remove(this.keyConf.getRemoveStrategy());
+    moveToTile(playerx + dx, playery);
+  }
+  moveVertical(dy: number) {
+    remove(this.keyConf.getRemoveStrategy());
+    moveToTile(playerx, playery + dy);
+  }
+  update(x: number, y: number) { }
+}
+class Locker implements Tile {
+  constructor(
+    private keyConf: KeyConfiguration
+  ) {
+
+  }
+  isAir(): boolean { return false; }
+  isLock1(): boolean { return this.keyConf.is1(); }
+  isLock2(): boolean { return !this.keyConf.is1(); }
+  draw(g: CanvasRenderingContext2D, x: number, y: number) {
+    g.fillStyle = this.keyConf.getColor();
+    g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  }
+  moveHorizontal(dx: number) { }
+  moveVertical(dy: number) { }
+  update(x: number, y: number) { }
+}
+class KeyConfiguration {
+  constructor(
+    private color: string,
+    private _1: boolean,
+    private removeStrategy: RemoveStrategy
+  ) {
+
+  }
+  getColor() { return this.color; }
+  is1() { return this._1; }
+  getRemoveStrategy() {
+    return this.removeStrategy;
+  }
+}
+const YELLOW_KEY = new KeyConfiguration("#ffcc00", true, new RemoveLock1());
+const BLUE_KEY = new KeyConfiguration("#00ccff", false, new RemoveLock2());
 enum RawInput {
   UP,
   DOWN,
@@ -281,10 +276,10 @@ function transformTile(tile: RawTile) {
     case RawTile.BOX: return new Box(new Resting());
     case RawTile.FALLING_BOX: return new Box(new Falling());
     case RawTile.FLUX: return new Flux();
-    case RawTile.KEY1: return new Key1();
-    case RawTile.LOCK1: return new Lock1();
-    case RawTile.KEY2: return new Key2();
-    case RawTile.LOCK2: return new Lock2();
+    case RawTile.KEY1: return new Keyer(YELLOW_KEY);
+    case RawTile.LOCK1: return new Locker(YELLOW_KEY);
+    case RawTile.KEY2: return new Keyer(BLUE_KEY);
+    case RawTile.LOCK2: return new Locker(BLUE_KEY);
     default: assertExhausted(tile);
   }
 }
