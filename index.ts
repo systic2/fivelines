@@ -297,7 +297,7 @@ class Player {
 }
 class Map {
   private map: Tile[][];
-  transform() {
+  constructor() {
     this.map = new Array(rawMap.length);
     for (let y = 0; y < rawMap.length; y++) {
       this.map[y] = new Array(rawMap[y].length);
@@ -419,19 +419,18 @@ function draw() {
   player.draw(g);
 }
 
-function gameLoop() {
+function gameLoop(map: Map) {
   let before = Date.now();
   update();
   draw();
   let after = Date.now();
   let frameTime = after - before;
   let sleep = SLEEP - frameTime;
-  setTimeout(() => gameLoop(), sleep);
+  setTimeout(() => gameLoop(map), sleep);
 }
 
 window.onload = () => {
-  map.transform();
-  gameLoop();
+  gameLoop(map);
 };
 
 const LEFT_KEY = "ArrowLeft";
